@@ -47,8 +47,10 @@ flowchart TD
 - **顶会论文（正文 10~14 页）黄金标准**：**8,000 ~ 12,000 汉字**。
 - **2:4:2:2 黄金比例**：背景 (1.5k~2k) : 核心微架构与算法 (4k~5k) : 实验评估与局限 (2k~2.5k) : 待深入专题 (1.5k~2k)。
 
-### 4. 👥 大部长文多 Agent 协同架构 (Multi-Agent Chapter-split)
-针对 >15 页或 >50 条高密批注的超大论文，可由**主编排 Agent**（负责全局论证拓扑与统一飞书写入权）调度 4 个**章节专员**（背景、架构、评估、线索）受限字数并行深入精读，最终收敛终审。
+### 4. 👥 长文多 Agent 三步双向闭环编排 (Bi-directional Subagent Orchestration)
+针对正文 $>15$ 页、批注 $>35$ 条或复杂综述，主 Agent 先通过 `ask_question` 向用户建议开启多 Agent 模式，并依据论文实际结构动态择优切分：
+- **“1 全局 + N 局部”角色互补**：必配 `Subagent-0`（全文脉络专员）通观全篇把握“森林”（全局叙事链、跨节隐性耦合、统一符号表、跨页疑问定位），搭配若干局部专员分段深潜死磕“树木”（公式、微架构、实验与批注细节）；
+- **三步走双向闭环**：① 子 Agent 精读上报《情报卡》 $\rightarrow$ ② 主 Agent 全局统筹、拉通跨区问答、向用户发起 `ask_question` 排版裁决并复用原 Subagent 下发《定稿提炼指令单》 $\rightarrow$ ③ 局部专员凭脑中原文细节写高保真章节血肉，主 Agent 撰骨缝合、统一执行 `humanizer-zh` 润色与标注审计后写入飞书。
 
 ### 5. 🔗 图表 Block 原生交互超链接 (Interactive Anchor Links)
 正文中所有提及的“图 x”、“表 y”，均原生转换为指向飞书 Block ID 的超链接（`<a href="...#block_id">图 x</a>`），点击平滑跳转高亮，保障数万字沉浸式阅读心流。
@@ -73,6 +75,7 @@ zotero-feishu-paper-notes/
 │   └── extract_zotero_annotations.py    # 只读提取 Zotero 本地 API 标注脚本
 └── references/
     ├── paper-reading-workflow.md         # 双遍精读流程与逻辑映射审核
+    ├── subagent-orchestration.md         # 多 Agent 三步双向闭环编排与动态角色划分规范
     ├── annotation-routing.md             # 7色标注路由、三步溯源与 ask_question 协议
     ├── source-grounding.md               # 技术核验、硬件规范与反例推导原则
     ├── writing-style.md                  # 篇幅预算、图表锚点与去 AI 味指南
