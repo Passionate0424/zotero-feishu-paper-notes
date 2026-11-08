@@ -74,10 +74,9 @@ zotero-feishu-paper-notes/
 ├── scripts/
 │   └── extract_zotero_annotations.py    # 只读提取 Zotero 本地 API 标注脚本
 └── references/
-    ├── paper-reading-workflow.md         # 双遍精读流程与逻辑映射审核
-    ├── subagent-orchestration.md         # 多 Agent 三步双向闭环编排与动态角色划分规范
+    ├── paper-reading-workflow.md         # 双遍精读流程、技术/红绿核验准则与逻辑映射审核
+    ├── subagent-orchestration.md         # 多 Agent 三步双向闭环编排与独立橙色搜索协议
     ├── annotation-routing.md             # 7色标注路由、三步溯源与 ask_question 协议
-    ├── source-grounding.md               # 技术核验、硬件规范与反例推导原则
     ├── writing-style.md                  # 篇幅预算、图表锚点与去 AI 味指南
     ├── note-template.xml                 # 飞书 XML 笔记标准骨架模板
     ├── annotation-audit.md               # 标注双重语义覆盖审计表
