@@ -68,7 +68,7 @@ python scripts/extract_zotero_annotations.py --query "论文标题" --format jso
 2. 按 [annotation-routing.md](references/annotation-routing.md) 分类，但按论文叙事顺序组织理解，不按颜色罗列摘录。
 3. 在后台维护“问题—原文位置—结论—正文位置”映射，确保问题被解决或明确保留。
 4. 对红色错误和绿色缺陷执行 [source-grounding.md](references/source-grounding.md) 中的核验规则。
-5. **逢橙必派独立 Subagent 搜索与多轮追问（独立于篇幅判断）**：只要存在橙色标注（`#f19837`），必须按 [subagent-orchestration.md](references/subagent-orchestration.md) 派生独立的【橙色溯源调研 Subagent】（下发“三联输入包”），在独立上下文中执行外部检索并提交《深度溯源报告》；主 Agent 审阅后，若检索深度不足或结合正文发现新对比维度，必须通过 `send_message` 发起多轮追问与二次检索确认。
+5. **逢橙必派独立 Subagent 搜索与按需多轮追问（独立于篇幅判断）**：只要存在橙色标注（`#f19837`），必须按 [subagent-orchestration.md](references/subagent-orchestration.md) 派生独立的【橙色溯源调研 Subagent】（下发“三联输入包”），在独立上下文中执行外部检索并提交《深度溯源报告》；主 Agent 审阅后，**首轮已彻底闭环则直接通过，仅在检索深度不足或结合正文发现新对比维度时**，才通过 `send_message` 发起按需多轮追问与二次检索确认。
 
 ### 4. 输出当前阶段结果
 
@@ -120,7 +120,7 @@ python scripts/extract_zotero_annotations.py --query "论文标题" --format jso
 ### 0. 逢橙必派：独立【橙色溯源调研 Subagent】（无视篇幅阈值，见橙即启）
 - 无论论文长短（哪怕正文 $\le 15$ 页采用单 Agent 精读），**只要存在橙色标注（`#f19837`），必须强制派生独立的【橙色溯源调研 Subagent】承担外部搜索**，隔离网页搜索噪音与跨论文串味幻觉；
 - 主 Agent 下发“三联输入包”（本文核心机制简述 + 原文上下文与用户批注 + References 完整引文），Subagent 联网检索后返回《橙色标注深度溯源报告》（含检索核验、The Former 机理、The Latter 反观对比、预制高密草稿）；
-- **多轮追问确认**：主 Agent 审阅报告时，若发现检索深度不足或结合正文深读发现新的对比维度，必须通过 `send_message` 向该 Subagent 发起定向追问，执行多轮搜索确认。
+- **按需多轮追问确认**：主 Agent 审阅报告时，若首轮结果已扎实闭环则直接采纳；**仅当**发现检索深度不足或结合正文深读发现新的对比维度时，才通过 `send_message` 向该 Subagent 发起定向追问，按需执行多轮搜索确认（不搞形式主义强制追问）。
 
 ### 1. 长文动态角色划分原则（“1 全局 + N 局部”，因文制宜择优切分）
 当检测到 **PDF 正文 $> 15$ 页**、**Zotero 标注 $> 35$ 条（或非空批注 $> 10$ 条）** 或属于**大部头综述/软硬协同长文**时，主 Agent 必须先通过 `ask_question` 向用户建议开启全文多 Agent 模式，并说明定制切分方案：
@@ -133,8 +133,8 @@ python scripts/extract_zotero_annotations.py --query "论文标题" --format jso
 1. **第一步：并行侦察与结构化情报上报（Subagents → 主 Agent）**
    - `Subagent-0` 与各局部专员并行阅读，**严禁第一步直接盲写长篇 XML**；
    - `Subagent-0` 上报《全局脉络与拓扑报告》，局部专员上报 500~800 字高浓度《区块精读情报卡》（含本区论证链、公式图表、标注逐条核验表与跨区悬念）。
-2. **第二步：主 Agent 统筹规划、多轮追问质询、用户交互与指令回传（主 Agent ↔ Subagents / 用户）**
-   - **对齐与多轮追问确认**：主 Agent 结合全局视角审阅各局部情报卡与橙色溯源报告；若某处机理含糊或外部检索未切中批注靶心，**先通过 `send_message` 向对应 Subagent 发起多轮追问与重查确认**；
+2. **第二步：主 Agent 统筹规划、按需追问质询、用户交互与指令回传（主 Agent ↔ Subagents / 用户）**
+   - **对齐与按需追问确认**：主 Agent 结合全局视角审阅各局部情报卡与橙色溯源报告（**首轮达标即放行，不强制走过场追问**）；仅当某处机理含糊或外部检索未切中批注靶心时，才通过 `send_message` 向对应 Subagent 发起定向追问与重查确认；
    - **字数预算与用户交互**：拉通跨区疑问答案、规划全文大纲与各专员**硬性字数预算**；汇总存在排版分歧的批注点，一次性调用 `ask_question` 请用户裁决“旁路高亮块 vs 融入正文”；
    - **下发定稿指令**：使用 `send_message` 唤醒**原局部 Subagents（直接复用其脑中已驻留的高清原文记忆）**，下发包含统一符号表、字数配额、跨区答案补丁与用户排版裁决的《定稿提炼指令单》。
 3. **第三步：高密内容提炼与主 Agent 终审合龙（Subagents → 主 Agent → 飞书）**
