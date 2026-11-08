@@ -21,7 +21,7 @@ description: 从 Zotero 和论文 PDF 完整精读单篇论文，结合用户的
 ## 按阶段加载参考
 
 - 开始精读时，完整阅读 [paper-reading-workflow.md](references/paper-reading-workflow.md)、[annotation-routing.md](references/annotation-routing.md) 和 [source-grounding.md](references/source-grounding.md)。
-- 若论文正文 $> 15$ 页、标注 $> 35$ 条（或非空批注 $> 10$ 条）或属于大部头综述，完整阅读 [subagent-orchestration.md](references/subagent-orchestration.md)，并通过 `ask_question` 向用户建议开启多 Agent 三步协同模式。
+- 凡检测到存在**橙色标注（`#f19837`）**，或论文**正文 $> 15$ 页、标注 $> 35$ 条（或非空批注 $> 10$ 条）、属于大部头综述**时，必须完整阅读 [subagent-orchestration.md](references/subagent-orchestration.md)。其中橙色标注强制派生独立的【橙色溯源调研 Subagent】承担外部搜索；全文多 Agent 切分则通过 `ask_question` 向用户建议开启。
 - 制定计划、撰写或修订笔记时，再完整阅读 [writing-style.md](references/writing-style.md)、[note-template.xml](references/note-template.xml) 和 [style-examples.md](references/style-examples.md)。
 - 在最终检查标注是否落入笔记时，完整阅读 [annotation-audit.md](references/annotation-audit.md)。
 - 完成笔记内容初稿后，必须调用 `humanizer-zh` 做语言审校；具体规则见 [writing-style.md](references/writing-style.md)。
@@ -67,7 +67,8 @@ python scripts/extract_zotero_annotations.py --query "论文标题" --format jso
 1. 把每条标注放回原页、原段落、公式或图表语境。
 2. 按 [annotation-routing.md](references/annotation-routing.md) 分类，但按论文叙事顺序组织理解，不按颜色罗列摘录。
 3. 在后台维护“问题—原文位置—结论—正文位置”映射，确保问题被解决或明确保留。
-4. 对红色错误、绿色缺陷和橙色延伸知识执行 [source-grounding.md](references/source-grounding.md) 中的核验规则。
+4. 对红色错误和绿色缺陷执行 [source-grounding.md](references/source-grounding.md) 中的核验规则。
+5. **逢橙必派独立 Subagent 搜索与多轮追问（独立于篇幅判断）**：只要存在橙色标注（`#f19837`），必须按 [subagent-orchestration.md](references/subagent-orchestration.md) 派生独立的【橙色溯源调研 Subagent】（下发“三联输入包”），在独立上下文中执行外部检索并提交《深度溯源报告》；主 Agent 审阅后，若检索深度不足或结合正文发现新对比维度，必须通过 `send_message` 发起多轮追问与二次检索确认。
 
 ### 4. 输出当前阶段结果
 
@@ -112,24 +113,30 @@ python scripts/extract_zotero_annotations.py --query "论文标题" --format jso
 9. 写入后重新读取文档，对照论文地图和标注覆盖映射检查结构、公式、数据、图片及遗漏；局部文字修改还要确认旧片段只在目标位置变更，周边用户内容保持不变。
 10. 返回文档链接，并列出仍无法确认的事项；不要把后台检查过程搬进正文。
 
-## 多 Agent 三步双向闭环编排（长文防幻觉核心机制）
+## 多 Agent 三步双向闭环编排与独立橙色搜索机制
 
-常规中短篇论文默认保持单 Agent 顺序流。当检测到 **PDF 正文 $> 15$ 页**、**Zotero 标注 $> 35$ 条（或非空批注 $> 10$ 条）** 或属于**大部头综述/软硬协同长文**时，主 Agent 必须先通过 `ask_question` 向用户建议开启多 Agent 模式，并说明针对该论文定制的切分方案（完整规范与通信模板见 [subagent-orchestration.md](references/subagent-orchestration.md)）：
+完整规范与通信模板见 [subagent-orchestration.md](references/subagent-orchestration.md)，分为**“独立常驻的橙色搜索 Subagent”**与**“按篇幅触发的全文多 Agent 切分”**两层机制：
 
-### 1. 动态角色划分原则（“1 全局 + N 局部”，因文制宜择优切分）
+### 0. 逢橙必派：独立【橙色溯源调研 Subagent】（无视篇幅阈值，见橙即启）
+- 无论论文长短（哪怕正文 $\le 15$ 页采用单 Agent 精读），**只要存在橙色标注（`#f19837`），必须强制派生独立的【橙色溯源调研 Subagent】承担外部搜索**，隔离网页搜索噪音与跨论文串味幻觉；
+- 主 Agent 下发“三联输入包”（本文核心机制简述 + 原文上下文与用户批注 + References 完整引文），Subagent 联网检索后返回《橙色标注深度溯源报告》（含检索核验、The Former 机理、The Latter 反观对比、预制高密草稿）；
+- **多轮追问确认**：主 Agent 审阅报告时，若发现检索深度不足或结合正文深读发现新的对比维度，必须通过 `send_message` 向该 Subagent 发起定向追问，执行多轮搜索确认。
+
+### 1. 长文动态角色划分原则（“1 全局 + N 局部”，因文制宜择优切分）
+当检测到 **PDF 正文 $> 15$ 页**、**Zotero 标注 $> 35$ 条（或非空批注 $> 10$ 条）** 或属于**大部头综述/软硬协同长文**时，主 Agent 必须先通过 `ask_question` 向用户建议开启全文多 Agent 模式，并说明定制切分方案：
 - **必配【Subagent-0：全文脉络与全局视角专员】**：通览全篇正文（重宏观结构与跨节关联），专职建立全景论文地图、识别跨章节隐性耦合、制定《全局统一符号与术语基准表》、为跨页紫色疑问定位答案所在章节，并提供开篇主线与思维导图骨架；
 - **动态切分【局部精读专员 Subagent-1..N】**：以下编组仅为参考建议，实际必须**根据论文真实目录结构、页码分布与软硬件侧重择优切分**：
-  - *研究型长文典型参考*：背景与动机专员（约 1.5k~2k 字）、核心方法/微架构专员（约 4k~5k 字，极长时可拆为算法与硬件两个专员）、实验评估与独立局限专员（约 2k~2.5k 字）、橙色可追溯线索专员（按需启动，约 1.5k~2k 字）；
+  - *研究型长文典型参考*：背景与动机专员（约 1.5k~2k 字）、核心方法/微架构专员（约 4k~5k 字，极长时可拆为算法与硬件两个专员）、实验评估与独立局限专员（约 2k~2.5k 字）、橙色可追溯线索专员（约 1.5k~2k 字）；
   - *综述型长文典型参考*：按综述顶层分类学（Taxonomy）动态切分为若干技术流派专员 + 横向对比与未来挑战专员。
 
 ### 2. 三步走双向闭环工作流（“子写高保真血肉，主控全局骨架”）
 1. **第一步：并行侦察与结构化情报上报（Subagents → 主 Agent）**
    - `Subagent-0` 与各局部专员并行阅读，**严禁第一步直接盲写长篇 XML**；
    - `Subagent-0` 上报《全局脉络与拓扑报告》，局部专员上报 500~800 字高浓度《区块精读情报卡》（含本区论证链、公式图表、标注逐条核验表与跨区悬念）。
-2. **第二步：主 Agent 统筹规划、用户交互裁决与指令回传（主 Agent ↔ 用户 → Subagents）**
-   - 主 Agent 结合全局视角与局部情报卡，拉通跨区疑问答案、规划全文大纲与各专员**硬性字数预算**；
-   - 汇总全篇存在排版分歧的批注点，一次性调用 `ask_question` 请用户裁决“旁路高亮块 vs 融入正文”；
-   - 使用 `send_message` 唤醒**原局部 Subagents（直接复用其脑中已驻留的高清原文记忆）**，下发包含统一符号表、字数配额、跨区答案补丁与用户排版裁决的《定稿提炼指令单》。
+2. **第二步：主 Agent 统筹规划、多轮追问质询、用户交互与指令回传（主 Agent ↔ Subagents / 用户）**
+   - **对齐与多轮追问确认**：主 Agent 结合全局视角审阅各局部情报卡与橙色溯源报告；若某处机理含糊或外部检索未切中批注靶心，**先通过 `send_message` 向对应 Subagent 发起多轮追问与重查确认**；
+   - **字数预算与用户交互**：拉通跨区疑问答案、规划全文大纲与各专员**硬性字数预算**；汇总存在排版分歧的批注点，一次性调用 `ask_question` 请用户裁决“旁路高亮块 vs 融入正文”；
+   - **下发定稿指令**：使用 `send_message` 唤醒**原局部 Subagents（直接复用其脑中已驻留的高清原文记忆）**，下发包含统一符号表、字数配额、跨区答案补丁与用户排版裁决的《定稿提炼指令单》。
 3. **第三步：高密内容提炼与主 Agent 终审合龙（Subagents → 主 Agent → 飞书）**
    - 各局部 Subagent 依据脑中原文细节与指令单，撰写零幻觉的**章节 XML 片段**并附标注落点核对表；
    - 主 Agent 亲自撰写开篇标题、`🎯 论文主线` 与 `<whiteboard type="mermaid">` 原生思维导图，缝合各章节过渡句，统一转换图表 Block 超链接，对全文执行 `humanizer-zh` 语言审校与全局标注覆盖审计，最终唯一执行飞书写入与回读。

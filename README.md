@@ -36,9 +36,9 @@ flowchart TD
 - **紫色 (`#a28ae5`) / 洋红 (`#e56eee`)**：保留读者问题意图与思考线索，紧邻补全完整机制解答，闭合认知环。
 - **绿色 (`#5fb236`)**：论文缺陷与局限。若论文含独立 Limitations 章节，强制在第三章独立总结，拒绝稀释。
 - **红色 (`#ff6666`)**：疑似论文错误，还原公式与数据，后台以反例或推导复核，存疑点就地说明。
-- **橙色 (`#f19837`) · 三步溯源与反观法**：
-  $$\text{锚定语境意图} \longrightarrow \text{检索被引文献底层机理 (The Former)} \longrightarrow \text{反观本篇折中与局限 (The Latter)}$$
-  提炼为独立闭环技术专题，收敛入“第四章：待深入与可追溯线索”。
+- **橙色 (`#f19837`) · 逢橙必派独立 Subagent 搜索 + 三步溯源与多轮追问**：
+  $$\text{下发三联上下文包} \longrightarrow \text{独立 Subagent 检索被引机理 (The Former)} \longrightarrow \text{反观本篇折中 (The Latter)} \longrightarrow \text{主 Agent 质询与多轮搜索确认}$$
+  独立于全文篇幅判断（哪怕单 Agent 精读中短篇论文），凡有橙色标注均强制派生专职 Subagent 隔离搜索噪音，支持主 Agent 多轮追问深挖，最终提炼为闭环专题。
 
 ### 2. 💬 呈现形态交互决策机制 (Interactive UI Decision)
 对于具有呈现双重性（可作正文逻辑段，亦可作独立高亮块）的高价值复杂批注，Agent 会在成文计划前主动调用 `ask_question` 工具向用户发起提问，提供专业倾向建议（`(Recommended)`），由用户裁决是融入正文、做成 `💡 关键理解` 高亮块还是 `🔍 存疑` 提示块。
@@ -47,10 +47,10 @@ flowchart TD
 - **顶会论文（正文 10~14 页）黄金标准**：**8,000 ~ 12,000 汉字**。
 - **2:4:2:2 黄金比例**：背景 (1.5k~2k) : 核心微架构与算法 (4k~5k) : 实验评估与局限 (2k~2.5k) : 待深入专题 (1.5k~2k)。
 
-### 4. 👥 长文多 Agent 三步双向闭环编排 (Bi-directional Subagent Orchestration)
+### 4. 👥 长文多 Agent 三步双向闭环与多轮质询编排 (Bi-directional Subagent Orchestration)
 针对正文 $>15$ 页、批注 $>35$ 条或复杂综述，主 Agent 先通过 `ask_question` 向用户建议开启多 Agent 模式，并依据论文实际结构动态择优切分：
 - **“1 全局 + N 局部”角色互补**：必配 `Subagent-0`（全文脉络专员）通观全篇把握“森林”（全局叙事链、跨节隐性耦合、统一符号表、跨页疑问定位），搭配若干局部专员分段深潜死磕“树木”（公式、微架构、实验与批注细节）；
-- **三步走双向闭环**：① 子 Agent 精读上报《情报卡》 $\rightarrow$ ② 主 Agent 全局统筹、拉通跨区问答、向用户发起 `ask_question` 排版裁决并复用原 Subagent 下发《定稿提炼指令单》 $\rightarrow$ ③ 局部专员凭脑中原文细节写高保真章节血肉，主 Agent 撰骨缝合、统一执行 `humanizer-zh` 润色与标注审计后写入飞书。
+- **三步走双向闭环 + 多轮追问确认**：① 子 Agent 精读上报《情报卡》 $\rightarrow$ ② 主 Agent 全局统筹、对存疑/浅层点发起 `send_message` 多轮追问重查、向用户发起 `ask_question` 排版裁决并复用原 Subagent 下发《定稿提炼指令单》 $\rightarrow$ ③ 局部专员凭脑中原文细节写高保真章节血肉，主 Agent 撰骨缝合、统一执行 `humanizer-zh` 润色与标注审计后写入飞书。
 
 ### 5. 🔗 图表 Block 原生交互超链接 (Interactive Anchor Links)
 正文中所有提及的“图 x”、“表 y”，均原生转换为指向飞书 Block ID 的超链接（`<a href="...#block_id">图 x</a>`），点击平滑跳转高亮，保障数万字沉浸式阅读心流。
