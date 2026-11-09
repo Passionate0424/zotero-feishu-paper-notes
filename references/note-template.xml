@@ -75,8 +75,8 @@ mindmap
 <!-- 
 数学公式与符号排版规范：
 1. 严禁使用裸 $ 符号。
-2. 行内数学公式使用 <latex>...</latex>，关系运算符使用 \gt、\lt、\ge、\le（例如 <latex>s_v \gt s_a</latex>），避免 < 破坏 XML 结构。
-3. 软硬件参数、位宽与代码符号使用 <code>...</code>（例如 <code>s_v &gt; s_a</code>、<code>N &gt;= 16</code>）。
+2. 数学推导与含上下标符号（如 s_v > s_a）一律使用 <latex>...</latex>，关系运算符写作 \gt、\lt、\ge、\le（例如 <latex>s_v \gt s_a</latex>），避免 < 破坏 XML 结构。
+3. 程序代码、寄存器字段与硬件参数一律使用 <code>...</code>（例如 <code>clk_en</code>、<code>dim &gt;= 512</code>）。
 4. 独立大公式使用 <p><latex>{{关键公式}}</latex></p>。
 -->
 <p><latex>{{关键公式}}</latex></p>
