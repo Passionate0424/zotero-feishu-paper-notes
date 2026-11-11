@@ -16,6 +16,15 @@
   </ul>
 </callout>
 
+<!-- 可选：核心局限性概括（当原论文分析了局限性、适用边界或失效场景时保留） -->
+<callout emoji="⚠️" background-color="light-gray" border-color="gray">
+  <p><b>核心局限性概括</b>：</p>
+  <ul>
+    <li><b>{{局限一}}</b>：{{原论文自述或分析的第一项适用场景假设/硬件开销/Corner Case}}</li>
+    <li><b>{{局限二}}</b>：{{原论文自述或分析的第二项泛化瓶颈/未解决工况}}</li>
+  </ul>
+</callout>
+
 <!-- 飞书原生思维导图：开篇全景技术拓扑 -->
 <whiteboard type="mermaid">
 mindmap
